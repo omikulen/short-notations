@@ -29,7 +29,6 @@ def on_press(key):
         # FIRST encounter of the coding character
         if key_char == coding_char and not typing_on:
             typing_on = True
-            input_sequence = coding_char
 
         if typing_on:
             # Add the pressed key to the current sequence
@@ -61,7 +60,7 @@ def on_press(key):
 
                     if output:
                         # Backspace to remove the sequence
-                        for _ in range(len(input_sequence) - 1):
+                        for _ in range(len(input_sequence)):
                             keyboard.press(Key.backspace)
                             keyboard.release(Key.backspace)
 
