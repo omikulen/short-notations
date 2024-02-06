@@ -3,39 +3,48 @@ from notations import shortcuts, write_power, coding_char, max_symbols
 
 
 # The current sequence of keys pressed
-current_keys = ""
+input_sequence = ""
 
 
 keyboard = Controller()
 
+# regime of checking the sequence
 typing_on = False
 
 
 def on_press(key):
-    global current_keys, typing_on
+    global input_sequence, typing_on
 
-    if len(current_keys) > max_symbols:
-        current_keys = ""
+    if len(input_sequence) > max_symbols:
+        input_sequence = ""
+
+    # typing is always turned off if the sequence is cleared by any means
+    if input_sequence == "":
         typing_on = False
+
     try:
         # Convert the key to a string and remove quotes
         key_char = str(key).replace("'", "")
 
+        # FIRST encounter of the coding character
         if key_char == coding_char and not typing_on:
             typing_on = True
-            current_keys = coding_char
+            input_sequence = coding_char
 
         if typing_on:
             # Add the pressed key to the current sequence
             if len(key_char) == 1:
-                current_keys += key_char
+                input_sequence += key_char
 
-                if key_char == coding_char and len(current_keys) > 1:
+                # try to convert "~...~" into something meaningful
+                # if not, the second ~ is just treated as a regular character
+                if key_char == coding_char and len(input_sequence) > 1:
 
-                    seq = current_keys.replace(coding_char, "")
+                    # remove all ~ from the sequence
+                    seq = input_sequence.replace(coding_char, "")
                     output = ""
 
-                    # special case for '^{number}' case
+                    # special treatment of the power '^{number}' case
                     if seq:
                         if seq[0] == "^":
                             output = write_power(seq[1:])
@@ -52,7 +61,7 @@ def on_press(key):
 
                     if output:
                         # Backspace to remove the sequence
-                        for _ in range(len(current_keys) - 1):
+                        for _ in range(len(input_sequence) - 1):
                             keyboard.press(Key.backspace)
                             keyboard.release(Key.backspace)
 
@@ -60,20 +69,21 @@ def on_press(key):
                         keyboard.type(output)
 
                         # Clear the current sequence
-                        current_keys = ""
-                        typing_on = False
+                        input_sequence = ""
 
+            # backspace
             elif key_char == "Key.backspace":
                 # Remove the last key if backspace is pressed
                 try:
-                    current_keys = current_keys[:-1]
+                    input_sequence = input_sequence[:-1]
                 except IndexError:
                     pass
+            # ignore space, shift, ctrl, etc.
             else:
                 pass
 
     except AttributeError:
-        pass  # Special keys (like space) will not be letters
+        pass
 
 
 def on_release(key):
